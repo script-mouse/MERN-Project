@@ -12,7 +12,7 @@ services:
       - MONGO_INITDB_DATABASE=FlashcardsDB
     volumes:
       - mongo_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -22,3 +22,5 @@ services:
 
 volumes:
   mongo_data:
+    external: true
+    name: cards-backend_mongo_data
