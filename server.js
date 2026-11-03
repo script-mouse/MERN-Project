@@ -1,7 +1,8 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 
 // --- Database -------------------------------------------------------------
-const url = process.env.MONGODB_URI || 'mongodb://localhost:27017/FlashcardsDB';
+const url = process.env.MONGODB_URI;
 mongoose
   .connect(url)
   .then(() => console.log('MongoDB connected successfully via Mongoose'))

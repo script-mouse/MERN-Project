@@ -35,11 +35,20 @@ const elementsDeck = [
   { deckName: "Periodic Table of Elements", numCards: 8, difficulty: 2.0, helpfulness: 5.0, userId: userIdStr }
 ];
 
+let curDeck;
+
 elementsDeck.forEach(deck => {
-  if (!db.decks.findOne({ userId: userIdStr, deckName: deck.deckName })) {
+  let existingDeck = db.decks.findOne({
+    userId: userIdStr,
+    deckName: deck.deckName
+  });
+
+  if (!existingDeck) {
     const result = db.decks.insertOne(deck);
+    existingDeck = db.decks.findOne({ _id: result.insertedId });
   }
-  curDeck = { _id: result.insertedId };
+
+  curDeck = existingDeck;
 });
 
 const deckIdStr = curDeck._id.toString();
