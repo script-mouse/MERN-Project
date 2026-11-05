@@ -1,273 +1,173 @@
-
 import { useState } from "react";
-import "./Register.css";
+import "./Dashboard.css";
 
-// Main registration page component
-function Register() {
+function Dashboard() {
+    const [view, setView] = useState("home");
+    const [classCode, setClassCode] = useState("");
+    const [classes, setClasses] = useState([]);
+    const [decks, setDecks] = useState([]);
+    const [selectedClass, setSelectedClass] = useState(null);
 
-  // Stores the values entered into the registration form
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  // Controls whether each password field displays its text
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // Stores an error message to display to the user
-  const [error, setError] = useState("");
-
-  // Tracks whether the registration request is processing
-  const [loading, setLoading] = useState(false);
-
-  // Runs when the user submits the registration form
-  async function handleSubmit(e) {
-
-    // Prevents the browser from refreshing the page
-    e.preventDefault();
-
-    // Clears any previous error message
-    setError("");
-
-    // Makes sure all fields have been filled out
-    if (!username.trim() || !email.trim() || !password || !confirmPassword) {
-      setError("Please fill in all fields.");
-      return;
+    function logout() {
+        localStorage.removeItem("user");
+        window.location.href = "/";
     }
 
-    // Checks whether both password fields match
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
+    function joinClass(e) {
+        e.preventDefault();
+
+        if (!classCode.trim()) return;
+
+        // Backend class-joining functionality will go here.
+        console.log("Class code submitted:", classCode);
     }
 
-    // Requires a password with at least 8 characters
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
+    function openClass(classItem) {
+        setSelectedClass(classItem);
+        setView("class");
     }
 
-    // Indicates that the registration request is processing
-    setLoading(true);
+    return (
+        <div className="dashboard">
+            <header className="dashboard-header">
+                <div className="dashboard-brand">StudyHub</div>
 
-    try {
+                <div className="user-info">
+                    <div>
+                        <strong>{user.firstName} {user.lastName}</strong>
+                        <span>@{user.login}</span>
+                    </div>
 
-      // Sends the registration information to the backend API
-      const response = await fetch("/auth/register", {
-        method: "POST",
+                    <button className="logout-button" onClick={logout}>
+                        Log Out
+                    </button>
+                </div>
+            </header>
 
-        // Tells the backend that the request body contains JSON
-        headers: {
-          "Content-Type": "application/json",
-        },
+            <div className="dashboard-layout">
+                <main className="dashboard-main">
 
-        // Converts the JavaScript object into a JSON string
-        // Uses "login" because that is what the API expects
-        body: JSON.stringify({
-          login: username.trim(),
-          email: email.trim(),
-          password,
-        }),
-      });
+                    {view === "home" && (
+                        <>
+                            <div className="dashboard-heading">
+                                <h1>Dashboard</h1>
+                                <p>Manage your classes and study materials.</p>
+                            </div>
 
-      // Reads the response from the backend as JSON
-      // Uses an empty object if the response is not valid JSON
-      const data = await response.json().catch(() => ({}));
+                            <section className="dashboard-section">
+                                <h2>Join a Class</h2>
+                                <p>Enter a class code to join an existing class.</p>
 
-      // Checks whether the backend returned an unsuccessful status
-      if (!response.ok) {
-        setError(data.message || "Unable to create your account.");
-        return;
-      }
+                                <form className="join-class-form" onSubmit={joinClass}>
+                                    <input
+                                        type="text"
+                                        value={classCode}
+                                        onChange={(e) => setClassCode(e.target.value)}
+                                        placeholder="Enter class code"
+                                        required
+                                    />
 
-      // TODO: Redirect the user to the login page after registration
-      // once the success flow has been finalized.
+                                    <button type="submit" className="primary-button">
+                                        Join Class
+                                    </button>
+                                </form>
+                            </section>
 
-    } catch {
+                            <section className="dashboard-section">
+                                <h2>Study Materials</h2>
+                                <p>Browse your available flashcard decks.</p>
 
-      // Runs if the frontend cannot reach the backend
-      setError("Unable to connect to the server.");
+                                <button
+                                    className="primary-button"
+                                    onClick={() => setView("decks")}
+                                >
+                                    View All Decks
+                                </button>
+                            </section>
+                        </>
+                    )}
 
-    } finally {
+                    {view === "decks" && (
+                        <>
+                            <button
+                                className="back-button"
+                                onClick={() => setView("home")}
+                            >
+                                ← Dashboard
+                            </button>
 
-      // Stops the loading state whether the request succeeds or fails
-      setLoading(false);
-    }
-  }
+                            <div className="dashboard-heading">
+                                <h1>All Decks</h1>
+                                <p>Browse your available flashcard decks.</p>
+                            </div>
 
-  // JSX: Defines the registration page's visual structure
-  return (
-    <div className="register-page">
+                            {decks.length === 0 ? (
+                                <p>No decks available yet.</p>
+                            ) : (
+                                <div className="deck-list">
+                                    {decks.map((deck) => (
+                                        <div className="deck-card" key={deck.id}>
+                                            <h3>{deck.name}</h3>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </>
+                    )}
 
-      {/* LEFT SIDE: Branding and decorative content */}
-      <section className="register-left">
+                    {view === "class" && selectedClass && (
+                        <>
+                            <button
+                                className="back-button"
+                                onClick={() => setView("home")}
+                            >
+                                ← Dashboard
+                            </button>
 
-        {/* Application logo and name */}
-        <div className="register-brand">
-          <div className="register-brand-icon">F</div>
-          <span>flashcards</span>
-        </div>
+                            <div className="dashboard-heading">
+                                <h1>{selectedClass.name}</h1>
+                                <p>{selectedClass.courseCode}</p>
+                            </div>
 
-        {/* Main promotional content */}
-        <div className="register-hero">
-          <span className="register-eyebrow">START LEARNING TODAY</span>
+                            <h2>Class Decks</h2>
+                            <p>No decks available yet.</p>
+                        </>
+                    )}
 
-          <h1>
-            Your next
-            <br />
-            <span>chapter starts here.</span>
-          </h1>
+                </main>
 
-          <p>
-            Build your knowledge one flashcard at a time.
-            Create an account and start learning at your own pace.
-          </p>
+                <aside className="class-sidebar">
+                    <h2>My Classes</h2>
 
-          {/* Decorative flashcard illustration */}
-          <div className="register-preview">
-            <div className="register-preview-card preview-back"></div>
-            <div className="register-preview-card preview-middle"></div>
+                    <div className="sidebar-class-list">
+                        {classes.length === 0 ? (
+                            <p>You haven't joined any classes yet.</p>
+                        ) : (
+                            classes.map((classItem) => (
+                                <button
+                                    key={classItem.id}
+                                    className="sidebar-class"
+                                    onClick={() => openClass(classItem)}
+                                >
+                                    <strong>{classItem.name}</strong>
+                                    <span>{classItem.courseCode}</span>
+                                </button>
+                            ))
+                        )}
+                    </div>
 
-            <div className="register-preview-card preview-front">
-              <span>YOUR LEARNING JOURNEY</span>
-              <h3>Small steps lead to big progress.</h3>
-
-              {/* Decorative progress bar */}
-              <div className="preview-progress">
-                <div></div>
-              </div>
-
-              <small>KEEP MOVING FORWARD</small>
+                    <button
+                        className="sidebar-join-button"
+                        onClick={() => setView("home")}
+                    >
+                        + Join a Class
+                    </button>
+                </aside>
             </div>
-          </div>
         </div>
-
-        {/* Footer at the bottom of the left panel */}
-        <div className="register-footer">
-          <span>STUDY SMARTER. NOT HARDER.</span>
-          <span>© 2026 FLASHCARDS</span>
-        </div>
-      </section>
-
-      {/* RIGHT SIDE: Registration form */}
-      <section className="register-right">
-        <form className="register-form" onSubmit={handleSubmit}>
-
-          {/* Logo displayed on smaller screens */}
-          <div className="register-mobile-brand">
-            <div className="register-brand-icon">F</div>
-            <span>flashcards</span>
-          </div>
-
-          {/* Registration form heading */}
-          <div className="register-heading">
-            <span className="register-eyebrow">GET STARTED</span>
-            <h2>Create your account</h2>
-            <p>Join us and start building your knowledge.</p>
-          </div>
-
-          {/* Displays an error if one exists */}
-          {error && (
-            <div className="register-error" role="alert">
-              {error}
-            </div>
-          )}
-
-          {/* Username input */}
-          <label htmlFor="register-username">Username</label>
-          <input
-            id="register-username"
-            type="text"
-            placeholder="Choose a username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            autoComplete="username"
-          />
-
-          {/* Email input */}
-          <label htmlFor="register-email">Email address</label>
-          <input
-            id="register-email"
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-          />
-
-          {/* Password input */}
-          <label htmlFor="register-password">Password</label>
-          <div className="register-password">
-            <input
-              id="register-password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Create a password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-
-            {/* Toggles password visibility */}
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? "Hide" : "Show"}
-            </button>
-          </div>
-
-          {/* Confirm password input */}
-          <label htmlFor="register-confirm-password">
-            Confirm password
-          </label>
-          <div className="register-password">
-            <input
-              id="register-confirm-password"
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Re-enter your password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-
-            {/* Toggles confirmation password visibility */}
-            <button
-              type="button"
-              onClick={() =>
-                setShowConfirmPassword(!showConfirmPassword)
-              }
-            >
-              {showConfirmPassword ? "Hide" : "Show"}
-            </button>
-          </div>
-
-          {/* Submits the registration form */}
-          <button
-            className="register-button"
-            type="submit"
-            disabled={loading}
-          >
-            {/* Changes button text while the request is processing */}
-            {loading ? "Creating account..." : "Create account"}
-            {!loading && <span>→</span>}
-          </button>
-
-          {/* Link back to the login page */}
-          <div className="register-signin">
-            Already have an account? <a href="/login">Sign in</a>
-          </div>
-
-          {/* Terms and privacy notice */}
-          <div className="register-legal">
-            By creating an account, you agree to our Terms of Service
-            and Privacy Policy.
-          </div>
-        </form>
-      </section>
-    </div>
-  );
+    );
 }
 
-// Makes the Register component available to other files
-export default Register;
+export default Dashboard;

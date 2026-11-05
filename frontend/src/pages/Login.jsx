@@ -78,7 +78,8 @@ function Login() {
       localStorage.setItem('user', JSON.stringify(data));
 
       // TODO: Redirect to the decks page once it exists.
-
+      window.location.href = "/dashboard";
+      
     } catch {
 
       // Runs if the request cannot reach the backend or another

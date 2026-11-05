@@ -1,0 +1,249 @@
+
+.dashboard {
+    min-height: 100vh;
+    background: #f5f6fa;
+    color: #222;
+    font-family: Arial, sans-serif;
+}
+
+.dashboard-header {
+    height: 70px;
+    background: white;
+    border-bottom: 1px solid #e5e5e5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8%;
+}
+
+.dashboard-brand {
+    font-size: 23px;
+    font-weight: bold;
+    color: #3546a5;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-info div {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+}
+
+.user-info span {
+    color: #777;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.logout-button,
+.back-button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #444;
+    font-size: 15px;
+}
+
+.logout-button:hover,
+.back-button:hover {
+    color: #3546a5;
+}
+
+/* Main layout */
+
+.dashboard-layout {
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 40px 25px;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 30px;
+}
+
+.dashboard-main {
+    min-width: 0;
+}
+
+.dashboard-heading {
+    margin-bottom: 30px;
+}
+
+.dashboard-heading h1 {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.dashboard-heading p {
+    color: #777;
+    margin: 0;
+}
+
+/* Dashboard sections */
+
+.dashboard-section {
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+.dashboard-section h2 {
+    margin-top: 0;
+    font-size: 20px;
+}
+
+.dashboard-section p {
+    color: #777;
+    font-size: 14px;
+}
+
+/* Join class form */
+
+.join-class-form {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.join-class-form input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+/* Buttons */
+
+.primary-button {
+    background: #3546a5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.primary-button:hover {
+    background: #263580;
+}
+
+/* Class sidebar */
+
+.class-sidebar {
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    padding: 22px;
+    height: fit-content;
+}
+
+.class-sidebar h2 {
+    font-size: 20px;
+    margin-top: 0;
+}
+
+.sidebar-class-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sidebar-class {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    padding: 12px;
+    background: #f5f6fa;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.sidebar-class:hover {
+    border-color: #3546a5;
+}
+
+.sidebar-class span {
+    color: #777;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.sidebar-join-button {
+    width: 100%;
+    margin-top: 18px;
+    padding: 11px;
+    border: 1px solid #3546a5;
+    border-radius: 6px;
+    background: white;
+    color: #3546a5;
+    cursor: pointer;
+}
+
+.sidebar-join-button:hover {
+    background: #f0f1fa;
+}
+
+/* Decks */
+
+.deck-list {
+    display: grid;
+    gap: 15px;
+}
+
+.deck-card {
+    padding: 20px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+}
+
+/* Back button */
+
+.back-button {
+    margin-bottom: 25px;
+    font-weight: bold;
+}
+
+/* Responsive */
+
+@media (max-width: 750px) {
+    .dashboard-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .class-sidebar {
+        grid-row: 1;
+    }
+
+    .join-class-form {
+        flex-direction: column;
+    }
+
+    .dashboard-header {
+        padding: 0 18px;
+    }
+}
+
+@media (max-width: 450px) {
+    .dashboard-brand {
+        font-size: 19px;
+    }
+
+    .user-info {
+        gap: 10px;
+    }
+
+    .dashboard-heading h1 {
+        font-size: 26px;
+    }
+}
