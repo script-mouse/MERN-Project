@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "dotenv": "^18.0.9",
+    "mongoose": "^9.11.4",
+    "nano": "^11.0.7"
+  }
+}
