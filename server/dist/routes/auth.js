@@ -14,55 +14,62 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const User_js_1 = __importDefault(require("../models/User.js"));
 const express_1 = require("express");
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 require('dotenv').config();
-// Set up the router
 const router = (0, express_1.Router)();
 // Registers a new user
 router.post('/register', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Validate the request
-        const { email, login, password } = req.body;
-        if (!email || !login || !password) {
-            res
-                .status(400)
-                .json({ message: "Missing one or more required fields" });
+        const { firstName, lastName, email, login, password } = req.body;
+        // Validate required fields
+        if (!firstName || !lastName || !email || !login || !password) {
+            res.status(400).json({
+                message: "Missing one or more required fields"
+            });
             return;
         }
-        // Check if a user with this email or username already exists
+        // Check if email is already in use
         const by_email = yield User_js_1.default.findOne({ email });
         if (by_email) {
-            res
-                .status(403)
-                .json({ message: "Email is already in use" });
+            res.status(403).json({
+                message: "Email is already in use"
+            });
             return;
         }
+        // Check if username is already in use
         const by_login = yield User_js_1.default.findOne({ login });
         if (by_login) {
-            res
-                .status(403)
-                .json({ message: "Username is already in use" });
+            res.status(403).json({
+                message: "Username is already in use"
+            });
             return;
         }
-        // Create the new user and authenticate
-        const user = yield User_js_1.default.create({ email, login, password });
-        // Respond (duh)
-        res
-            .status(201)
-            .json({ message: "User successfully created" });
+        // Hash the password before saving it
+        const hashedPassword = yield bcryptjs_1.default.hash(password, 10);
+        // Create the new user
+        yield User_js_1.default.create({
+            firstName,
+            lastName,
+            email,
+            login,
+            password: hashedPassword
+        });
+        res.status(201).json({
+            message: "User successfully created"
+        });
     }
     catch (err) {
-        // Uh oh!
         console.error(err);
-        res
-            .status(500)
-            .json({ message: "Internal server error" });
+        res.status(500).json({
+            message: "Internal server error"
+        });
     }
 }));
 // Logs a user in
 router.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { login, password } = req.body;
-        // Validate the request
+        // Validate required fields
         if (!login || !password) {
             res.status(400).json({
                 message: "Username and password are required"
@@ -77,8 +84,22 @@ router.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* 
             });
             return;
         }
-        // Check the password
-        const auth = password == user.password;
+        // Check whether the stored password is already hashed
+        const isHashed = /^\$2[aby]\$/.test(user.password);
+        let auth = false;
+        if (isHashed) {
+            // Compare the entered password against the hash
+            auth = yield bcryptjs_1.default.compare(password, user.password);
+        }
+        else {
+            // Support accounts created before password hashing
+            auth = password === user.password;
+            if (auth) {
+                // Upgrade the old plaintext password to a hash
+                user.password = yield bcryptjs_1.default.hash(password, 10);
+                yield user.save();
+            }
+        }
         if (!auth) {
             res.status(401).json({
                 message: "Invalid password"
@@ -100,9 +121,9 @@ router.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* 
 // Logs a user out
 router.post('/logout', (req, res) => {
     res.clearCookie('token');
-    res
-        .status(200)
-        .json({ message: "User successfully logged out" });
+    res.status(200).json({
+        message: "User successfully logged out"
+    });
 });
 exports.default = router;
 //# sourceMappingURL=auth.js.map

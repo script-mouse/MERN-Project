@@ -34,7 +34,11 @@ const userSchema = new mongoose_1.default.Schema({
         type: String,
         default: 'user',
         trim: true
-    }
+    },
+    classes: [{
+            type: mongoose_1.default.Schema.Types.ObjectId,
+            ref: 'Class'
+        }]
 }, {
     collection: 'users',
     versionKey: false

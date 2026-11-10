@@ -7,6 +7,11 @@ const deckSchema = new mongoose.Schema(
       default: '',
       trim: true
     },
+    description: {
+      type: String,
+      default: '',
+      trim: true
+    },
     numCards: {
       type: Number,
       default: 0
@@ -32,4 +37,5 @@ const deckSchema = new mongoose.Schema(
 );
 
 const Deck = mongoose.model('Deck', deckSchema);
+
 export default Deck;

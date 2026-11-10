@@ -10,6 +10,11 @@ const deckSchema = new mongoose_1.default.Schema({
         default: '',
         trim: true
     },
+    description: {
+        type: String,
+        default: '',
+        trim: true
+    },
     numCards: {
         type: Number,
         default: 0

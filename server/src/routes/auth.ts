@@ -1,62 +1,76 @@
+
 import User from '../models/User.js';
 import { Router, Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
 
 require('dotenv').config();
 
-// Set up the router
 const router = Router();
 
 // Registers a new user
 router.post('/register', async (req: Request, res: Response) => {
     try {
-        // Validate the request
-        const { email, login, password } = req.body;
-        if (!email || !login || !password) {
-            res
-                .status(400)
-                .json({ message: "Missing one or more required fields" });
+        const { firstName, lastName, email, login, password } = req.body;
+
+        // Validate required fields
+        if (!firstName || !lastName || !email || !login || !password) {
+            res.status(400).json({
+                message: "Missing one or more required fields"
+            });
             return;
         }
 
-        // Check if a user with this email or username already exists
+        // Check if email is already in use
         const by_email = await User.findOne({ email });
+
         if (by_email) {
-            res
-                .status(403)
-                .json({ message: "Email is already in use" });
+            res.status(403).json({
+                message: "Email is already in use"
+            });
             return;
         }
+
+        // Check if username is already in use
         const by_login = await User.findOne({ login });
+
         if (by_login) {
-            res
-                .status(403)
-                .json({ message: "Username is already in use" });
+            res.status(403).json({
+                message: "Username is already in use"
+            });
             return;
         }
 
-        // Create the new user and authenticate
-        const user = await User.create({ email, login, password });
+        // Hash the password before saving it
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Respond (duh)
-        res
-            .status(201)
-            .json({ message: "User successfully created" });
+        // Create the new user
+        await User.create({
+            firstName,
+            lastName,
+            email,
+            login,
+            password: hashedPassword
+        });
+
+        res.status(201).json({
+            message: "User successfully created"
+        });
+
     } catch (err) {
-        // Uh oh!
         console.error(err);
-        res
-            .status(500)
-            .json({ message: "Internal server error" });
+
+        res.status(500).json({
+            message: "Internal server error"
+        });
     }
 });
 
 // Logs a user in
-
 router.post('/login', async (req: Request, res: Response) => {
     try {
         const { login, password } = req.body;
 
-        // Validate the request
+        // Validate required fields
         if (!login || !password) {
             res.status(400).json({
                 message: "Username and password are required"
@@ -74,8 +88,24 @@ router.post('/login', async (req: Request, res: Response) => {
             return;
         }
 
-        // Check the password
-        const auth = password == user.password;
+        // Check whether the stored password is already hashed
+        const isHashed = /^\$2[aby]\$/.test(user.password);
+
+        let auth = false;
+
+        if (isHashed) {
+            // Compare the entered password against the hash
+            auth = await bcrypt.compare(password, user.password);
+        } else {
+            // Support accounts created before password hashing
+            auth = password === user.password;
+
+            if (auth) {
+                // Upgrade the old plaintext password to a hash
+                user.password = await bcrypt.hash(password, 10);
+                await user.save();
+            }
+        }
 
         if (!auth) {
             res.status(401).json({
@@ -92,6 +122,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
     } catch (err) {
         console.error(err);
+
         res.status(500).json({
             message: "Internal server error"
         });
@@ -101,9 +132,10 @@ router.post('/login', async (req: Request, res: Response) => {
 // Logs a user out
 router.post('/logout', (req: Request, res: Response) => {
     res.clearCookie('token');
-    res
-        .status(200)
-        .json({ message: "User successfully logged out" });
+
+    res.status(200).json({
+        message: "User successfully logged out"
+    });
 });
 
 export default router;
