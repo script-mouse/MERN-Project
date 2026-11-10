@@ -9,12 +9,42 @@ function DeckPanel({
   selectedClass,
   decks = [],
   onSelectDeck,
+  onAddDeck,
 }) {
   const [search, setSearch] = useState("");
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [deckName, setDeckName] = useState("");
+  const [description, setDescription] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState("");
 
   const filteredDecks = decks.filter((deck) =>
     (deck.deckName || "").toLowerCase().includes(search.toLowerCase())
   );
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    if (!deckName.trim()) return;
+
+    setCreating(true);
+    setError("");
+
+    try {
+      await onAddDeck({
+        deckName: deckName.trim(),
+        description: description.trim(),
+      });
+
+      setDeckName("");
+      setDescription("");
+      setShowCreateForm(false);
+    } catch (err) {
+      setError(err.message || "Unable to create deck.");
+    } finally {
+      setCreating(false);
+    }
+  }
 
   return (
     <section className="dashboard-panel deck-panel">
@@ -46,6 +76,59 @@ function DeckPanel({
         onChange={(event) => setSearch(event.target.value)}
         disabled={!selectedClass}
       />
+
+      {selectedClass && (
+        <button
+          type="button"
+          className="create-deck-button"
+          onClick={() => {
+            setShowCreateForm(!showCreateForm);
+            setError("");
+          }}
+        >
+          + Create Deck
+        </button>
+      )}
+
+      {showCreateForm && (
+        <form className="create-deck-form" onSubmit={handleSubmit}>
+          <h3>Create a Deck</h3>
+
+          <input
+            type="text"
+            placeholder="Deck name"
+            value={deckName}
+            onChange={(event) => setDeckName(event.target.value)}
+            required
+            disabled={creating}
+          />
+
+          <textarea
+            placeholder="Description (optional)"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            disabled={creating}
+          />
+
+          {error && (
+            <p className="create-deck-error">{error}</p>
+          )}
+
+          <div className="create-deck-actions">
+            <button type="submit" disabled={creating}>
+              {creating ? "Creating..." : "Create"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowCreateForm(false)}
+              disabled={creating}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
 
       {!selectedClass ? (
         <p className="deck-panel-empty">

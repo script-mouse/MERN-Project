@@ -6,7 +6,7 @@ function Navbar({ user, onLogout }) {
     <header className="dashboard-navbar">
       <div className="dashboard-brand">
         <span className="brand-icon">S</span>
-        <h1>StudyHub</h1>
+        <h1>Flashcards</h1>
       </div>
 
       <div className="navbar-right">

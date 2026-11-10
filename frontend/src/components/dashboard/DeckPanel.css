@@ -1,10 +1,89 @@
-.deck-list {
-  display: grid;
-  gap: 10px;
+.create-deck-button {
+  width: 100%;
+  margin: 12px 0;
+  padding: 11px;
+
+  border: none;
+  border-radius: 8px;
+  background: #5b4bdb;
+  color: white;
+
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.deck-panel-empty {
-  padding: 18px 0;
-  color: #858597;
+.create-deck-button:hover {
+  background: #4636c4;
+}
+
+.create-deck-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 15px;
+
+  border: 1px solid #e5e5ed;
+  border-radius: 10px;
+  background: #faf9ff;
+}
+
+.create-deck-form h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: #29293c;
+}
+
+.create-deck-form input,
+.create-deck-form textarea {
+  width: 100%;
+  padding: 10px;
+
+  border: 1px solid #dedee8;
+  border-radius: 7px;
+
+  font-family: inherit;
   font-size: 13px;
+  box-sizing: border-box;
+}
+
+.create-deck-form textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.create-deck-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.create-deck-actions button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.create-deck-actions button[type="submit"] {
+  background: #5b4bdb;
+  color: white;
+}
+
+.create-deck-actions button[type="button"] {
+  background: #eae9f0;
+  color: #444;
+}
+
+.create-deck-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.create-deck-error {
+  margin: 0;
+  color: #c0392b;
+  font-size: 12px;
 }

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 
 import Navbar from "../components/dashboard/Navbar";
@@ -9,7 +8,6 @@ import "./Dashboard.css";
 
 const API_BASE = "";
 
-// Retrieve the logged-in user.
 function getStoredUser() {
   try {
     return JSON.parse(localStorage.getItem("user") || "null");
@@ -18,13 +16,11 @@ function getStoredUser() {
   }
 }
 
-// Get an ID whether MongoDB returns an ObjectId string or populated object.
 function getId(value) {
   if (!value) return "";
   return String(typeof value === "object" ? value._id : value);
 }
 
-// Determine whether the logged-in user owns a class.
 function checkClassOwnership(classItem, userId) {
   return getId(classItem.owner) === getId(userId);
 }
@@ -40,7 +36,7 @@ function Dashboard() {
   const [loadingDecks, setLoadingDecks] = useState(false);
   const [error, setError] = useState("");
 
-  // Retrieve the user's classes when the dashboard loads.
+  // Retrieve the user's classes.
   useEffect(() => {
     async function loadClasses() {
       if (!user?._id) {
@@ -76,7 +72,7 @@ function Dashboard() {
     loadClasses();
   }, [user]);
 
-  // Retrieve decks whenever a different class is selected.
+  // Retrieve decks when a class is selected.
   useEffect(() => {
     let cancelled = false;
 
@@ -123,7 +119,6 @@ function Dashboard() {
     };
   }, [selectedClass]);
 
-  // Select a class from the class panel.
   function handleSelectClass(classItem) {
     setSelectedClass(classItem);
     setError("");
@@ -159,7 +154,7 @@ function Dashboard() {
     return newClass;
   }
 
-  // Join an existing class using its class code.
+  // Join a class using its class code.
   async function handleJoinClass(classCode) {
     const response = await fetch(`${API_BASE}/classes/join`, {
       method: "POST",
@@ -178,9 +173,11 @@ function Dashboard() {
       throw new Error(data.message || data.error || "Unable to join class.");
     }
 
+    const rawClass = data.class || data;
+
     const joinedClass = {
-      ...(data.class || data),
-      isOwner: checkClassOwnership(data.class || data, user._id),
+      ...rawClass,
+      isOwner: checkClassOwnership(rawClass, user._id),
     };
 
     setClasses((current) => {
@@ -200,14 +197,55 @@ function Dashboard() {
     return joinedClass;
   }
 
-  // Log out and return to the login page.
+  // Create a deck inside the currently selected class.
+  async function handleAddDeck(deckData) {
+    if (!selectedClass?._id) {
+      throw new Error("Please select a class first.");
+    }
+
+    const response = await fetch(`${API_BASE}/decks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...deckData,
+        userId: user._id,
+        classId: selectedClass._id,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || data.error || "Unable to create deck.");
+    }
+
+    const newDeck = data.deck || data;
+
+    setDecks((current) => [...current, newDeck]);
+
+    // Update the selected class's deck list as well.
+    setSelectedClass((current) => {
+      if (!current || current._id !== selectedClass._id) {
+        return current;
+      }
+
+      return {
+        ...current,
+        decks: [...(current.decks || []), newDeck],
+      };
+    });
+
+    return newDeck;
+  }
+
   function handleLogout() {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     window.location.href = "/";
   }
 
-  // Handle selecting a deck.
   function handleSelectDeck(deck) {
     console.log("Selected deck:", deck);
   }
@@ -225,7 +263,7 @@ function Dashboard() {
           <p className="dashboard-eyebrow">YOUR STUDY SPACE</p>
 
           <h1>
-            Welcome back, {user.firstName || "Student"}.
+            Welcome back, {user.firstName || user.login}.
           </h1>
 
           <p>
@@ -266,6 +304,7 @@ function Dashboard() {
                 selectedClass={selectedClass}
                 decks={decks}
                 onSelectDeck={handleSelectDeck}
+                onAddDeck={handleAddDeck}
               />
             )}
           </div>
