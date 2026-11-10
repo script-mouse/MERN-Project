@@ -9,12 +9,24 @@ import "./Dashboard.css";
 
 const API_BASE = "";
 
+// Retrieve the logged-in user.
 function getStoredUser() {
   try {
     return JSON.parse(localStorage.getItem("user") || "null");
   } catch {
     return null;
   }
+}
+
+// Get an ID whether MongoDB returns an ObjectId string or populated object.
+function getId(value) {
+  if (!value) return "";
+  return String(typeof value === "object" ? value._id : value);
+}
+
+// Determine whether the logged-in user owns a class.
+function checkClassOwnership(classItem, userId) {
+  return getId(classItem.owner) === getId(userId);
 }
 
 function Dashboard() {
@@ -48,7 +60,12 @@ function Dashboard() {
           throw new Error(data.message || data.error || "Unable to load classes.");
         }
 
-        setClasses(data.classes || []);
+        const userClasses = (data.classes || []).map((classItem) => ({
+          ...classItem,
+          isOwner: checkClassOwnership(classItem, user._id),
+        }));
+
+        setClasses(userClasses);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -131,7 +148,10 @@ function Dashboard() {
       throw new Error(data.message || data.error || "Unable to create class.");
     }
 
-    const newClass = data.class || data;
+    const newClass = {
+      ...(data.class || data),
+      isOwner: true,
+    };
 
     setClasses((current) => [...current, newClass]);
     setSelectedClass(newClass);
@@ -158,14 +178,21 @@ function Dashboard() {
       throw new Error(data.message || data.error || "Unable to join class.");
     }
 
-    const joinedClass = data.class || data;
+    const joinedClass = {
+      ...(data.class || data),
+      isOwner: checkClassOwnership(data.class || data, user._id),
+    };
 
     setClasses((current) => {
       const alreadyJoined = current.some(
         (item) => item._id === joinedClass._id
       );
 
-      return alreadyJoined ? current : [...current, joinedClass];
+      return alreadyJoined
+        ? current.map((item) =>
+            item._id === joinedClass._id ? joinedClass : item
+          )
+        : [...current, joinedClass];
     });
 
     setSelectedClass(joinedClass);
