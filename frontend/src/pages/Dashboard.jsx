@@ -1,174 +1,251 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import Navbar from "../components/dashboard/Navbar";
+import ClassPanel from "../components/dashboard/ClassPanel";
+import DeckPanel from "../components/dashboard/DeckPanel";
+
 import "./Dashboard.css";
 
+const API_BASE = "";
+
+function getStoredUser() {
+  try {
+    return JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+    return null;
+  }
+}
+
 function Dashboard() {
-    const [view, setView] = useState("home");
-    const [classCode, setClassCode] = useState("");
-    const [classes, setClasses] = useState([]);
-    const [decks, setDecks] = useState([]);
-    const [selectedClass, setSelectedClass] = useState(null);
+  const [user] = useState(getStoredUser);
 
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const [classes, setClasses] = useState([]);
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [decks, setDecks] = useState([]);
 
-    function logout() {
-        localStorage.removeItem("user");
-        window.location.href = "/";
+  const [loadingClasses, setLoadingClasses] = useState(true);
+  const [loadingDecks, setLoadingDecks] = useState(false);
+  const [error, setError] = useState("");
+
+  // Retrieve the user's classes when the dashboard loads.
+  useEffect(() => {
+    async function loadClasses() {
+      if (!user?._id) {
+        setError("Unable to identify the logged-in user. Please log in again.");
+        setLoadingClasses(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `${API_BASE}/classes/user/${user._id}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || data.error || "Unable to load classes.");
+        }
+
+        setClasses(data.classes || []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoadingClasses(false);
+      }
     }
 
-    function joinClass(e) {
-        e.preventDefault();
+    loadClasses();
+  }, [user]);
 
-        if (!classCode.trim()) return;
+  // Retrieve decks whenever a different class is selected.
+  useEffect(() => {
+    let cancelled = false;
 
-        // Backend class-joining functionality will go here.
-        console.log("Class code submitted:", classCode);
+    async function loadDecks() {
+      if (!selectedClass?._id) {
+        setDecks([]);
+        return;
+      }
+
+      setLoadingDecks(true);
+      setError("");
+
+      try {
+        const response = await fetch(
+          `${API_BASE}/classes/${selectedClass._id}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || data.error || "Unable to load class.");
+        }
+
+        if (!cancelled) {
+          const classDecks = data.class?.decks || data.decks || [];
+          setDecks(classDecks);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err.message);
+          setDecks([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingDecks(false);
+        }
+      }
     }
 
-    function openClass(classItem) {
-        setSelectedClass(classItem);
-        setView("class");
+    loadDecks();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedClass]);
+
+  // Select a class from the class panel.
+  function handleSelectClass(classItem) {
+    setSelectedClass(classItem);
+    setError("");
+  }
+
+  // Create a new class.
+  async function handleAddClass(classData) {
+    const response = await fetch(`${API_BASE}/classes`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...classData,
+        ownerId: user._id,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || data.error || "Unable to create class.");
     }
 
-    return (
-        <div className="dashboard">
-            <header className="dashboard-header">
-                <div className="dashboard-brand">StudyHub</div>
+    const newClass = data.class || data;
 
-                <div className="user-info">
-                    <div>
-                        <strong>{user.firstName} {user.lastName}</strong>
-                        <span>@{user.login}</span>
-                    </div>
+    setClasses((current) => [...current, newClass]);
+    setSelectedClass(newClass);
 
-                    <button className="logout-button" onClick={logout}>
-                        Log Out
-                    </button>
-                </div>
-            </header>
+    return newClass;
+  }
 
-            <div className="dashboard-layout">
-                <main className="dashboard-main">
+  // Join an existing class using its class code.
+  async function handleJoinClass(classCode) {
+    const response = await fetch(`${API_BASE}/classes/join`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        classCode,
+        userId: user._id,
+      }),
+    });
 
-                    {view === "home" && (
-                        <>
-                            <div className="dashboard-heading">
-                                <h1>Dashboard</h1>
-                                <p>Manage your classes and study materials.</p>
-                            </div>
+    const data = await response.json();
 
-                            <section className="dashboard-section">
-                                <h2>Join a Class</h2>
-                                <p>Enter a class code to join an existing class.</p>
+    if (!response.ok) {
+      throw new Error(data.message || data.error || "Unable to join class.");
+    }
 
-                                <form className="join-class-form" onSubmit={joinClass}>
-                                    <input
-                                        type="text"
-                                        value={classCode}
-                                        onChange={(e) => setClassCode(e.target.value)}
-                                        placeholder="Enter class code"
-                                        required
-                                    />
+    const joinedClass = data.class || data;
 
-                                    <button type="submit" className="primary-button">
-                                        Join Class
-                                    </button>
-                                </form>
-                            </section>
+    setClasses((current) => {
+      const alreadyJoined = current.some(
+        (item) => item._id === joinedClass._id
+      );
 
-                            <section className="dashboard-section">
-                                <h2>Study Materials</h2>
-                                <p>Browse your available flashcard decks.</p>
+      return alreadyJoined ? current : [...current, joinedClass];
+    });
 
-                                <button
-                                    className="primary-button"
-                                    onClick={() => setView("decks")}
-                                >
-                                    View All Decks
-                                </button>
-                            </section>
-                        </>
-                    )}
+    setSelectedClass(joinedClass);
 
-                    {view === "decks" && (
-                        <>
-                            <button
-                                className="back-button"
-                                onClick={() => setView("home")}
-                            >
-                                ← Dashboard
-                            </button>
+    return joinedClass;
+  }
 
-                            <div className="dashboard-heading">
-                                <h1>All Decks</h1>
-                                <p>Browse your available flashcard decks.</p>
-                            </div>
+  // Log out and return to the login page.
+  function handleLogout() {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    window.location.href = "/";
+  }
 
-                            {decks.length === 0 ? (
-                                <p>No decks available yet.</p>
-                            ) : (
-                                <div className="deck-list">
-                                    {decks.map((deck) => (
-                                        <div className="deck-card" key={deck.id}>
-                                            <h3>{deck.name}</h3>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </>
-                    )}
+  // Handle selecting a deck.
+  function handleSelectDeck(deck) {
+    console.log("Selected deck:", deck);
+  }
 
-                    {view === "class" && selectedClass && (
-                        <>
-                            <button
-                                className="back-button"
-                                onClick={() => setView("home")}
-                            >
-                                ← Dashboard
-                            </button>
+  if (!user) {
+    return <p>Please log in to access your dashboard.</p>;
+  }
 
-                            <div className="dashboard-heading">
-                                <h1>{selectedClass.name}</h1>
-                                <p>{selectedClass.courseCode}</p>
-                            </div>
+  return (
+    <main className="dashboard-page">
+      <Navbar user={user} onLogout={handleLogout} />
 
-                            <h2>Class Decks</h2>
-                            <p>No decks available yet.</p>
-                        </>
-                    )}
+      <section className="dashboard-content">
+        <div className="dashboard-welcome">
+          <p className="dashboard-eyebrow">YOUR STUDY SPACE</p>
 
-                </main>
+          <h1>
+            Welcome back, {user.firstName || "Student"}.
+          </h1>
 
-                <aside className="class-sidebar">
-                    <h2>My Classes</h2>
-
-                    <div className="sidebar-class-list">
-                        {classes.length === 0 ? (
-                            <p>You haven't joined any classes yet.</p>
-                        ) : (
-                            classes.map((classItem) => (
-                                <button
-                                    key={classItem.id}
-                                    className="sidebar-class"
-                                    onClick={() => openClass(classItem)}
-                                >
-                                    <strong>{classItem.name}</strong>
-                                    <span>{classItem.courseCode}</span>
-                                </button>
-                            ))
-                        )}
-                    </div>
-
-                    <button
-                        className="sidebar-join-button"
-                        onClick={() => setView("home")}
-                    >
-                        + Join a Class
-                    </button>
-                </aside>
-            </div>
+          <p>
+            Choose a class and find a deck to start studying.
+          </p>
         </div>
-    );
+
+        {error && (
+          <div className="dashboard-error">
+            {error}
+          </div>
+        )}
+
+        <div className="dashboard-layout">
+          <section>
+            {loadingClasses ? (
+              <div className="dashboard-panel">
+                <p>Loading classes...</p>
+              </div>
+            ) : (
+              <ClassPanel
+                classes={classes}
+                selectedClass={selectedClass}
+                onSelectClass={handleSelectClass}
+                onAddClass={handleAddClass}
+                onJoinClass={handleJoinClass}
+              />
+            )}
+          </section>
+
+          <div className="dashboard-decks">
+            {loadingDecks ? (
+              <section className="dashboard-panel">
+                <p>Loading decks...</p>
+              </section>
+            ) : (
+              <DeckPanel
+                selectedClass={selectedClass}
+                decks={decks}
+                onSelectDeck={handleSelectDeck}
+              />
+            )}
+          </div>
+        </div>
+      </section>
+    </main>
+  );
 }
 
 export default Dashboard;

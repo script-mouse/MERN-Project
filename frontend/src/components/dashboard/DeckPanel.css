@@ -1,0 +1,10 @@
+.deck-list {
+  display: grid;
+  gap: 10px;
+}
+
+.deck-panel-empty {
+  padding: 18px 0;
+  color: #858597;
+  font-size: 13px;
+}

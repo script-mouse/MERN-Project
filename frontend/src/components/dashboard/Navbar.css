@@ -1,0 +1,52 @@
+.dashboard-navbar {
+  height: 70px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.dashboard-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboard-brand h1 {
+  font-size: 22px;
+  color: #252538;
+}
+
+.brand-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #5b4bdb;
+  color: white;
+  border-radius: 9px;
+  font-weight: bold;
+  font-size: 19px;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.logout-button {
+  padding: 9px 16px;
+  border: 1px solid #dedee7;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.logout-button:hover {
+  background: #f5f5f8;
+}
