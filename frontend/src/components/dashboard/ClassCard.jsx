@@ -1,31 +1,38 @@
 import "./ClassCard.css";
 
-function ClassCard({ classItem, selected, onClick }) {
+function ClassCard({ classItem, selected, onClick, onManage }) {
   return (
-    <button
-      className={`class-card ${selected ? "selected" : ""}`}
-      onClick={() => onClick(classItem)}
-    >
+    <div className={`class-card ${selected ? "selected" : ""}`}>
+      <button
+        className="class-card-content"
+        onClick={() => onClick(classItem)}
+      >
+        <span className="class-card-name">
+          {classItem.name}
+        </span>
+
+        {classItem.description && (
+          <span className="class-card-description">
+            {classItem.description}
+          </span>
+        )}
+      </button>
+
       {classItem.isOwner && (
-        <span
+        <button
+          type="button"
           className="class-card-owner-icon"
-          title="Class owner"
-          aria-label="You own this class"
+          title="Manage class"
+          aria-label={`Manage ${classItem.name}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onManage(classItem);
+          }}
         >
           ⚙
-        </span>
+        </button>
       )}
-
-      <span className="class-card-name">
-        {classItem.name}
-      </span>
-
-      {classItem.description && (
-        <span className="class-card-description">
-          {classItem.description}
-        </span>
-      )}
-    </button>
+    </div>
   );
 }
 

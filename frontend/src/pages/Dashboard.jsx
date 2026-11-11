@@ -1,8 +1,10 @@
+
 import { useEffect, useState } from "react";
 
 import Navbar from "../components/dashboard/Navbar";
 import ClassPanel from "../components/dashboard/ClassPanel";
 import DeckPanel from "../components/dashboard/DeckPanel";
+import ClassSettingsPanel from "../components/dashboard/ClassSettingsPanel";
 
 import "./Dashboard.css";
 
@@ -36,7 +38,8 @@ function Dashboard() {
   const [loadingDecks, setLoadingDecks] = useState(false);
   const [error, setError] = useState("");
 
-  // Retrieve the user's classes.
+  const [managingClass, setManagingClass] = useState(null);
+
   useEffect(() => {
     async function loadClasses() {
       if (!user?._id) {
@@ -72,7 +75,6 @@ function Dashboard() {
     loadClasses();
   }, [user]);
 
-  // Retrieve decks when a class is selected.
   useEffect(() => {
     let cancelled = false;
 
@@ -121,10 +123,42 @@ function Dashboard() {
 
   function handleSelectClass(classItem) {
     setSelectedClass(classItem);
+    setManagingClass(null);
     setError("");
   }
 
-  // Create a new class.
+  function handleManageClass(classItem) {
+    setManagingClass(classItem);
+    setError("");
+  }
+
+  function handleBackToDecks() {
+    setManagingClass(null);
+  }
+
+  function handleClassUpdated(updatedClass) {
+    const updatedClassWithOwnership = {
+      ...updatedClass,
+      isOwner: checkClassOwnership(updatedClass, user._id),
+    };
+
+    setClasses((previousClasses) =>
+      previousClasses.map((item) =>
+        item._id === updatedClass._id
+          ? { ...item, ...updatedClassWithOwnership }
+          : item
+      )
+    );
+
+    setSelectedClass((previous) =>
+      previous?._id === updatedClass._id
+        ? { ...previous, ...updatedClassWithOwnership }
+        : previous
+    );
+
+    setManagingClass(updatedClassWithOwnership);
+  }
+
   async function handleAddClass(classData) {
     const response = await fetch(`${API_BASE}/classes`, {
       method: "POST",
@@ -150,11 +184,11 @@ function Dashboard() {
 
     setClasses((current) => [...current, newClass]);
     setSelectedClass(newClass);
+    setManagingClass(null);
 
     return newClass;
   }
 
-  // Join a class using its class code.
   async function handleJoinClass(classCode) {
     const response = await fetch(`${API_BASE}/classes/join`, {
       method: "POST",
@@ -193,11 +227,11 @@ function Dashboard() {
     });
 
     setSelectedClass(joinedClass);
+    setManagingClass(null);
 
     return joinedClass;
   }
 
-  // Create a deck inside the currently selected class.
   async function handleAddDeck(deckData) {
     if (!selectedClass?._id) {
       throw new Error("Please select a class first.");
@@ -225,7 +259,6 @@ function Dashboard() {
 
     setDecks((current) => [...current, newDeck]);
 
-    // Update the selected class's deck list as well.
     setSelectedClass((current) => {
       if (!current || current._id !== selectedClass._id) {
         return current;
@@ -288,6 +321,7 @@ function Dashboard() {
                 classes={classes}
                 selectedClass={selectedClass}
                 onSelectClass={handleSelectClass}
+                onManageClass={handleManageClass}
                 onAddClass={handleAddClass}
                 onJoinClass={handleJoinClass}
               />
@@ -295,7 +329,14 @@ function Dashboard() {
           </section>
 
           <div className="dashboard-decks">
-            {loadingDecks ? (
+            {managingClass ? (
+              <ClassSettingsPanel
+                classItem={managingClass}
+                user={user}
+                onBack={handleBackToDecks}
+                onClassUpdated={handleClassUpdated}
+              />
+            ) : loadingDecks ? (
               <section className="dashboard-panel">
                 <p>Loading decks...</p>
               </section>

@@ -1,0 +1,154 @@
+
+.class-settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.class-settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid #e5e5ed;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.class-settings-section h3 {
+  margin: 0 0 5px;
+  font-size: 16px;
+  color: #29293c;
+}
+
+.class-settings-section label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #55556b;
+}
+
+.class-settings-section input,
+.class-settings-section textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #dedee8;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  color: #29293c;
+  background: white;
+}
+
+.class-settings-section input:focus,
+.class-settings-section textarea:focus {
+  outline: none;
+  border-color: #5b4bdb;
+  box-shadow: 0 0 0 2px rgba(91, 75, 219, 0.1);
+}
+
+.class-settings-section textarea {
+  resize: vertical;
+}
+
+.class-code-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.class-code-input input {
+  flex: 1;
+  min-width: 0;
+  text-transform: uppercase;
+}
+
+.class-settings-members-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.class-settings-members-heading span {
+  font-size: 12px;
+  color: #858597;
+}
+
+.class-settings-members {
+  display: flex;
+  flex-direction: column;
+}
+
+.class-settings-member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid #eeeeF2;
+}
+
+.class-settings-member:last-child {
+  border-bottom: none;
+}
+
+.class-settings-member > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.class-settings-member strong {
+  font-size: 13px;
+  color: #29293c;
+}
+
+.class-settings-member span {
+  font-size: 12px;
+  color: #858597;
+}
+
+.class-settings-owner {
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: #f0edff;
+  color: #5b4bdb !important;
+  font-weight: 600;
+}
+
+.class-settings-remove {
+  padding: 7px 10px;
+  border: 1px solid #f0caca;
+  border-radius: 7px;
+  background: white;
+  color: #c43c3c;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.class-settings-remove:hover {
+  background: #fff5f5;
+}
+
+.class-settings-remove:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.class-settings-error {
+  margin: 0;
+  color: #c43c3c;
+  font-size: 13px;
+}
+
+.class-settings-message {
+  margin: 0;
+  color: #27834a;
+  font-size: 13px;
+}
+
+.class-settings-empty {
+  margin: 0;
+  color: #858597;
+  font-size: 13px;
+}

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 
 import ClassCard from "./ClassCard";
@@ -10,6 +11,7 @@ function ClassPanel({
   classes = [],
   selectedClass,
   onSelectClass,
+  onManageClass,
   onAddClass,
   onJoinClass,
 }) {
@@ -57,6 +59,7 @@ function ClassPanel({
             classItem={classItem}
             selected={selectedClass?._id === classItem._id}
             onClick={onSelectClass}
+            onManage={onManageClass}
           />
         ))}
 
